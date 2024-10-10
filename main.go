@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 	"zrw/goMin/config"
+	"zrw/goMin/db"
 	"zrw/goMin/logger"
+	"zrw/goMin/redis"
 )
 
 func main() {
@@ -33,6 +35,18 @@ func main() {
 	err = logger.InitLogger(logConfig.LogPath, logConfig.LogLevel)
 	if err != nil {
 		fmt.Printf("Init logger failed. Error is %v", err)
+		os.Exit(1)
+	}
+
+	err = db.InitEngine()
+	if err != nil {
+		fmt.Printf("Init DB failed. Error is %v", err)
+		os.Exit(1)
+	}
+
+	err = redis.InitRedis()
+	if err != nil {
+		fmt.Printf("Init Redis failed. Error is %v", err)
 		os.Exit(1)
 	}
 

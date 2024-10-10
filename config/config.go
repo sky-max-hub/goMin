@@ -6,13 +6,29 @@ import (
 	"io/ioutil"
 )
 
+type RedisConfig struct {
+	Addr     string `json:"addr"`
+	Password string `json:"password"`
+	DB       int    `json:"db"`
+}
+
+type DBConfig struct {
+	DbHost     string `json:"db_host"`
+	DbPort     string `json:"db_port"`
+	DbUser     string `json:"db_user"`
+	DbPassword string `json:"db_password"`
+	DbName     string `json:"db_name"`
+}
+
 type LogConfig struct {
 	LogPath  string `json:"log_path"`
 	LogLevel string `json:"log_level"`
 }
 
 type Config struct {
-	LogConfig LogConfig `json:"log_config"`
+	LogConfig   LogConfig   `json:"log_config"`
+	DBConfig    DBConfig    `json:"db_config"`
+	RedisConfig RedisConfig `json:"redis_config_config"`
 }
 
 var conf Config
