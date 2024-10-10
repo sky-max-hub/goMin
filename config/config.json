@@ -1,0 +1,6 @@
+{
+  "log_config": {
+    "log_path": "test.log",
+    "log_level": "debug"
+  }
+}
