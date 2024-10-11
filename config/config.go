@@ -6,6 +6,14 @@ import (
 	"io/ioutil"
 )
 
+type HttpConfig struct {
+	Addr string `json:"addr"`
+}
+
+type RpcConfig struct {
+	Addr string `json:"addr"`
+}
+
 type RedisConfig struct {
 	Addr     string `json:"addr"`
 	Password string `json:"password"`
@@ -29,6 +37,15 @@ type Config struct {
 	LogConfig   LogConfig   `json:"log_config"`
 	DBConfig    DBConfig    `json:"db_config"`
 	RedisConfig RedisConfig `json:"redis_config_config"`
+	HttpConfig  HttpConfig  `json:"http_config"`
+	RpcConfig   RpcConfig   `json:"rpc_config"`
+	NsqConfig   NsqConfig   `json:"nsp_config"`
+}
+
+type NsqConfig struct {
+	Topic          string `json:"topic"`
+	Channel        string `json:"channel"`
+	NsqLookupdAddr string `json:"nsqlookupd_addr"`
 }
 
 var conf Config

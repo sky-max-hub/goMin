@@ -1,18 +1,25 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
+	"net/http"
+	"net/http/pprof"
 	"os"
+	"time"
+	"zrw/goMin/admin"
 	"zrw/goMin/config"
 	"zrw/goMin/db"
 	"zrw/goMin/logger"
+	"zrw/goMin/mq"
+	httpsrv "zrw/goMin/process/http"
+	"zrw/goMin/process/rpc"
 	"zrw/goMin/redis"
 )
 
 func main() {
 	var configPath string
-
 	flag.StringVar(&configPath, "config", "", "配置文件路径")
 	flag.Parse()
 
@@ -50,5 +57,39 @@ func main() {
 		os.Exit(1)
 	}
 
+	//启动http服务
+	go httpsrv.StartHttpServer(config.GetConfig().HttpConfig.Addr)
+
+	//启动rpc服务
+	go rpc.StartRpcServer(config.GetConfig().RpcConfig.Addr)
+
+	//启动nsq消费者
+	go mq.StartMqServer()
+
 	logger.GetLogger().Info("Init success.")
+
+	pCh := admin.Get()
+	for {
+		select {
+		case <-pCh.OnOff:
+			timeout := time.Second * time.Duration(pCh.Timeout)
+			go func() {
+				mux := http.NewServeMux()
+				mux.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
+				mux.Handle("/debug/pprof/cmdline", http.HandlerFunc(pprof.Cmdline))
+				mux.Handle("/debug/pprof/profile", http.HandlerFunc(pprof.Profile))
+				mux.Handle("/debug/pprof/symbol", http.HandlerFunc(pprof.Symbol))
+				mux.Handle("/debug/pprof/trace", http.HandlerFunc(pprof.Trace))
+				s := &http.Server{Addr: pCh.Host, Handler: mux}
+				logger.GetLogger().Info("start serve pprof")
+				go s.ListenAndServe()
+				time.Sleep(timeout)
+				s.Shutdown(context.Background())
+				<-pCh.Used
+				logger.GetLogger().Info("stop serve pprof")
+			}()
+			pCh.Used <- struct{}{}
+			logger.GetLogger().Info("fuck")
+		}
+	}
 }
